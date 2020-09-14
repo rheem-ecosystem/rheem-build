@@ -1,0 +1,622 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <!--
+
+    Global parent pom.xml for Rheem modules to inherit from.
+
+    - Shared resources are pulled in from the rheem-build-resources dependency (images, CSS, XSLTs for documentation
+      generation)
+
+    Preconfigures the following:
+
+    - Logging dependencies: SLF4j + Commons Logging bridge and Logback as test dependency
+    - Test dependencies: JUnit 4+5 / Mockito
+    - Dependency versions for commonly used dependencies
+
+    -->
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>rheem-build-parent</artifactId>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>io.rheem</groupId>
+        <artifactId>rheem-build</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <name>Rheem Build - General parent module</name>
+    <description>Global parent pom.xml to be used by Rheem modules</description>
+    <url>https://rheem.io</url>
+    <inceptionYear>2020</inceptionYear>
+
+    <organization>
+        <name>Scalytics, Inc.</name>
+        <url>https://www.scalytics.io</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>Bertty Contreras-Rojas</name>
+            <email>bertty@scalytics.io</email>
+            <organization>Scalytics, Inc</organization>
+            <organizationUrl>https://www.scalytics.io</organizationUrl>
+        </developer>
+        <developer>
+            <name>Rodrigo Pardo-Meza</name>
+            <email>rodrigo@scalytics.io</email>
+            <organization>Scalytics, Inc</organization>
+            <organizationUrl>https://www.scalytics.io</organizationUrl>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+            <comments>
+                Copyright 2020 the original author or authors.
+
+                Licensed under the Apache License, Version 2.0 (the "License");
+                you may not use this file except in compliance with the License.
+                You may obtain a copy of the License at
+
+                http://www.apache.org/licenses/LICENSE-2.0
+
+                Unless required by applicable law or agreed to in writing, software
+                distributed under the License is distributed on an "AS IS" BASIS,
+                WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+                See the License for the specific language governing permissions and
+                limitations under the License.
+            </comments>
+        </license>
+    </licenses>
+
+    <properties>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.root>${basedir}</project.root>
+        <source.level>1.8</source.level>
+        <dist.id>${project.artifactId}</dist.id>
+        <jacoco.destfile>${project.build.directory}/jacoco.exec</jacoco.destfile>
+        <maven.kotlin.skip>false</maven.kotlin.skip>
+
+        <commons-io.version>2.5</commons-io.version>
+        <guava.version>19.0</guava.version>
+        <hamcrest.version>1.3</hamcrest.version>
+        <jackson.version>2.11.2</jackson.version>
+        <jacoco.version>0.8.5</jacoco.version>
+        <jodatime.version>2.10.6</jodatime.version>
+        <jsonpath.version>2.4.0</jsonpath.version>
+        <junit5.version>5.6.1</junit5.version>
+        <logback.version>1.2.3</logback.version>
+        <mockito.version>3.5.10</mockito.version>
+        <mockk.version>1.10.0</mockk.version>
+        <slf4j.version>1.7.26</slf4j.version>
+        <testcontainers>1.14.3</testcontainers>
+        <validation>1.1.0.Final</validation>
+
+        <!-- To be overridden by individual modules -->
+        <java-module-name/>
+
+    </properties>
+
+    <profiles>
+        <profile>
+
+            <!-- Profile to be run on the CI server, JARs JavaDocs -->
+            <id>ci</id>
+            <build>
+                <plugins>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>package-javadoc</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-checkstyle-plugin</artifactId>
+                        <configuration>
+                            <configLocation>google_checks.xml</configLocation>
+                            <includes>**/*</includes>
+                            <excludes>
+                                **/.flattened-pom.xml,.git/**/*,target/**/*,**/target/**/*,.idea/**/*,**/spring.schemas,**/*.svg,mvnw,mvnw.cmd,**/*.graphml,work/**/*
+                            </excludes>
+                            <sourceDirectories>./</sourceDirectories>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>
+                                    validate
+                                </phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Used to build Java 11+ -->
+        <profile>
+            <id>java11</id>
+            <properties>
+                <jaxb.version>2.2.11</jaxb.version>
+                <java-activation.version>1.1.1</java-activation.version>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                    <version>${jaxb.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>javax.activation</groupId>
+                    <artifactId>activation</artifactId>
+                    <version>${java-activation.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>javax.annotation</groupId>
+                    <artifactId>javax.annotation-api</artifactId>
+                    <version>${javax-annotation-api}</version>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <!--
+            Profile to be run before a release is executed, currently does the following:
+
+            - Prevents thrid-party snapshot dependencies in projects
+        -->
+        <profile>
+            <id>pre-release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>enforce-no-third-party-snapshots</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <requireReleaseDeps>
+                                            <failWhenParentIsSnapshot>false</failWhenParentIsSnapshot>
+                                            <excludes>
+                                                <exclude>io.rheem:*</exclude>
+                                            </excludes>
+                                        </requireReleaseDeps>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <!-- Profile for SonarCube -->
+            <id>sonarcube</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>${jacoco.version}</version>
+                        <configuration>
+                            <destFile>${jacoco.destfile}</destFile>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>jacoco-initialize</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <!-- Profile to be activated when building the docs artifacts.  -->
+            <id>distribute</id>
+            <properties>
+                <shared.resources>${project.build.directory}/shared-resources</shared.resources>
+                <maven.main.skip>true</maven.main.skip>
+                <maven.test.skip>true</maven.test.skip>
+                <maven.install.skip>true</maven.install.skip>
+                <maven.deploy.skip>true</maven.deploy.skip>
+                <skipTests>true</skipTests>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>io.rheem</groupId>
+                    <artifactId>rheem-build-resources</artifactId>
+                    <version>1.0.0-SNAPSHOT</version>
+                    <type>zip</type>
+                    <optional>true</optional>
+                </dependency>
+            </dependencies>
+
+            <build>
+                <plugins>
+                    <!-- Configures JavaDoc generation. -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>aggregate-javadoc</id>
+                                <goals>
+                                    <goal>aggregate-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.jfrog.buildinfo</groupId>
+                        <artifactId>artifactory-maven-plugin</artifactId>
+                    </plugin>
+
+                </plugins>
+
+            </build>
+        </profile>
+
+
+    </profiles>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit5.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj}</version>
+            <scope>test</scope>
+        </dependency>
+
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+
+        <!--
+            Default versioned declarations of managed plugins
+            to be overridden when the distribute profile is active.
+            If this section was missing, Maven would complain about
+            missing version numbers for executions without the
+            profile active.
+        -->
+
+        <pluginManagement>
+
+            <plugins>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>3.0.0</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>3.3.0</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                    <configuration>
+                        <forceJavacCompilerUse>true</forceJavacCompilerUse>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>3.1.1</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>8.33</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.1.2</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.0.0-M1</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>3.0.0-M3</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>3.0.0-M5</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.2.1</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.0.0-M5</version>
+                    <configuration>
+                        <useSystemClassLoader>false</useSystemClassLoader>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.jfrog.buildinfo</groupId>
+                    <artifactId>artifactory-maven-plugin</artifactId>
+                    <version>2.7.0</version>
+                </plugin>
+
+            </plugins>
+
+        </pluginManagement>
+
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${source.level}</source>
+                    <target>${source.level}</target>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>java-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>java-test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <useSystemClassLoader>false</useSystemClassLoader>
+                    <useFile>false</useFile>
+                    <includes>
+                        <include>**/*Tests.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Implementation-Title>${project.name}</Implementation-Title>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                            <Automatic-Module-Name>${java-module-name}</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <locale>en_US</locale>
+                    <breakiterator>true</breakiterator>
+                    <header>${project.name}</header>
+                    <source>${source.level}</source>
+                    <quiet>true</quiet>
+                    <javadocDirectory>${shared.resources}/javadoc</javadocDirectory>
+                    <overview>${shared.resources}/javadoc/overview.html</overview>
+                    <!-- copies doc-files subdirectory which contains image resources -->
+                    <docfilessubdirs>true</docfilessubdirs>
+                    <additionalOptions>
+                        <additionalOption>-Xdoclint:none</additionalOption>
+                    </additionalOptions>
+                    <links>
+                        <link>https://docs.oracle.com/javase/8/docs/api/</link>
+                    </links>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-maven-version</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>3.5.0</version>
+                                </requireMavenVersion>
+                                <requireJavaVersion>
+                                    <version>1.8</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+</project>
