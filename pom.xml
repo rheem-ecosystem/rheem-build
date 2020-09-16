@@ -80,29 +80,57 @@
             <id>release</id>
             <build>
                 <plugins>
-                    <!-- Make sure we build on Java 8 with only release dependencies -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.0.0</version>
                         <executions>
                             <execution>
-                                <id>enforce-release-rules</id>
+                                <id>attach-javadocs</id>
                                 <goals>
-                                    <goal>enforce</goal>
+                                    <goal>jar</goal>
                                 </goals>
-                                <configuration>
-                                    <rules>
-                                        <requireJavaVersion>
-                                            <version>[1.8,1.9)</version>
-                                        </requireJavaVersion>
-                                        <requireReleaseDeps />
-                                        <requireReleaseVersion />
-                                    </rules>
-                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
-
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.0.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.8</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
                 </plugins>
             </build>
         </profile>

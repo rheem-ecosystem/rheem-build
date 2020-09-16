@@ -86,6 +86,7 @@
         <jacoco.destfile>${project.build.directory}/jacoco.exec</jacoco.destfile>
         <maven.kotlin.skip>false</maven.kotlin.skip>
 
+        <assertj.version>3.17.2</assertj.version>
         <commons-io.version>2.5</commons-io.version>
         <guava.version>19.0</guava.version>
         <hamcrest.version>1.3</hamcrest.version>
@@ -291,6 +292,156 @@
             </build>
         </profile>
 
+        <profile>
+            <id>scala</id>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.scala-lang</groupId>
+                        <artifactId>scala-library</artifactId>
+                        <version>${scala.version}</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>net.alchim31.maven</groupId>
+                            <artifactId>scala-maven-plugin</artifactId>
+                            <version>4.4.0</version>
+                            <executions>
+                                <execution>
+                                    <id>compile-scala</id>
+                                    <goals>
+                                        <goal>compile</goal>
+                                        <goal>testCompile</goal>
+                                    </goals>
+                                    <configuration>
+                                        <scalaVersion>${scala.version}</scalaVersion>
+                                        <sourceDir>${project.build.sourceDirectory}/../scala</sourceDir>
+                                        <testSourceDir> ${project.build.testSourceDirectory}/../scala</testSourceDir>
+                                    </configuration>
+                                </execution>
+                                <execution>
+                                    <id>add-scala-src</id>
+                                    <phase>prepare-package</phase>
+                                    <goals>
+                                        <goal>add-source</goal>
+                                    </goals>
+                                </execution>
+                                <execution>
+                                    <id>generate-scaladoc</id>
+                                    <goals>
+                                        <goal>doc-jar</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                        </plugin>
+<!--                        <plugin>-->
+<!--                            <artifactId>maven-jar-plugin</artifactId>-->
+<!--                            <executions>-->
+<!--                                <execution>-->
+<!--                                    <id>scala</id>-->
+<!--                                    <goals>-->
+<!--                                        <goal>jar</goal>-->
+<!--                                    </goals>-->
+<!--                                    <phase>package</phase>-->
+<!--                                    <configuration>-->
+<!--                                        <finalName>${project.artifactId}_${scala.mayor.version}</finalName>-->
+<!--                                        <skipIfEmpty>true</skipIfEmpty>-->
+<!--                                        <excludes>-->
+<!--                                            <exclude>*.timestamp</exclude>-->
+<!--                                        </excludes>-->
+<!--                                    </configuration>-->
+<!--                                </execution>-->
+<!--                            </executions>-->
+<!--                        </plugin>-->
+                    </plugins>
+                </pluginManagement>
+                <plugins>
+                    <plugin>
+                        <groupId>net.alchim31.maven</groupId>
+                        <artifactId>scala-maven-plugin</artifactId>
+                    </plugin>
+<!--                    <plugin>-->
+<!--                        <artifactId>maven-jar-plugin</artifactId>-->
+<!--                    </plugin>-->
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>scala-11</id>
+            <properties>
+                <scala.version>2.11.12</scala.version>
+                <scala.mayor.version>2.11</scala.mayor.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>scala-12</id>
+            <properties>
+                <scala.version>2.12.12</scala.version>
+                <scala.mayor.version>2.12</scala.mayor.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>scala-13</id>
+            <properties>
+                <scala.version>2.13.3</scala.version>
+                <scala.mayor.version>2.13</scala.mayor.version>
+            </properties>
+        </profile>
+
+
+        <profile>
+            <id>antlr</id>
+            <properties>
+                <antlr.version>4.5.3</antlr.version>
+            </properties>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <!-- trigger run with mvn process-resouces; then see target/generated-sources/antlr4 -->
+                        <plugin>
+                            <groupId>org.antlr</groupId>
+                            <artifactId>antlr4-maven-plugin</artifactId>
+                            <version>4.5.3</version>
+<!--                            <version>${antlr.version}</version>-->
+                            <executions>
+                                <execution>
+                                    <id>run-antlr</id>
+                                    <goals>
+                                        <goal>antlr4</goal>
+                                    </goals>
+                                    <configuration>
+                                        <visitor>true</visitor>
+                                        <sourceDirectory>${project.build.sourceDirectory}/../antlr4</sourceDirectory>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+                <plugins>
+                    <!-- trigger run with mvn process-resouces; then see target/generated-sources/antlr4 -->
+                    <plugin>
+                        <groupId>org.antlr</groupId>
+                        <artifactId>antlr4-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+            <dependencies>
+                <dependency>
+                    <groupId>org.antlr</groupId>
+                    <artifactId>antlr4</artifactId>
+                    <version>${antlr.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
 
     </profiles>
 
@@ -345,7 +496,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>${assertj}</version>
+            <version>${assertj.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -363,6 +514,9 @@
             <version>${logback.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Coverage -->
+
 
     </dependencies>
 
@@ -475,6 +629,12 @@
                     <groupId>org.jfrog.buildinfo</groupId>
                     <artifactId>artifactory-maven-plugin</artifactId>
                     <version>2.7.0</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.openclover</groupId>
+                    <artifactId>clover-maven-plugin</artifactId>
+                    <version>4.2.1</version>
                 </plugin>
 
             </plugins>
