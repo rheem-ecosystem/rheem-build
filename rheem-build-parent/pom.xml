@@ -99,11 +99,9 @@
         <mockito.version>3.5.10</mockito.version>
         <mockk.version>1.10.0</mockk.version>
         <slf4j.version>1.7.26</slf4j.version>
-        <testcontainers>1.14.3</testcontainers>
-        <validation>1.1.0.Final</validation>
-
+        <external.platforms.scope>provided</external.platforms.scope>
         <!-- To be overridden by individual modules -->
-        <java-module-name/>
+        <java-module-name>io.rheem.default</java-module-name>
 
     </properties>
 
@@ -338,25 +336,25 @@
                                 </execution>
                             </executions>
                         </plugin>
-<!--                        <plugin>-->
-<!--                            <artifactId>maven-jar-plugin</artifactId>-->
-<!--                            <executions>-->
-<!--                                <execution>-->
-<!--                                    <id>scala</id>-->
-<!--                                    <goals>-->
-<!--                                        <goal>jar</goal>-->
-<!--                                    </goals>-->
-<!--                                    <phase>package</phase>-->
-<!--                                    <configuration>-->
-<!--                                        <finalName>${project.artifactId}_${scala.mayor.version}</finalName>-->
-<!--                                        <skipIfEmpty>true</skipIfEmpty>-->
-<!--                                        <excludes>-->
-<!--                                            <exclude>*.timestamp</exclude>-->
-<!--                                        </excludes>-->
-<!--                                    </configuration>-->
-<!--                                </execution>-->
-<!--                            </executions>-->
-<!--                        </plugin>-->
+                        <plugin>
+                            <artifactId>maven-jar-plugin</artifactId>
+                            <executions>
+                                <execution>
+                                    <id>default-jar</id>
+                                    <goals>
+                                        <goal>jar</goal>
+                                    </goals>
+                                    <phase>package</phase>
+                                    <configuration>
+                                        <finalName>${project.artifactId}-${project.version}_${scala.mayor.version}</finalName>
+                                        <skipIfEmpty>true</skipIfEmpty>
+                                        <excludes>
+                                            <exclude>*.timestamp</exclude>
+                                        </excludes>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
                     </plugins>
                 </pluginManagement>
                 <plugins>
@@ -442,6 +440,43 @@
             </dependencies>
         </profile>
 
+        <profile>
+            <!-- Include the external platforms in the build. -->
+            <id>standalone</id>
+            <properties>
+                <external.platforms.scope>compile</external.platforms.scope>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>add-dependencies</id>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-dependency-plugin</artifactId>
+                            <version>3.1.2</version>
+                            <executions>
+                                <execution>
+                                    <id>copy-dependencies</id>
+                                    <phase>prepare-package</phase>
+                                    <goals>
+                                        <goal>copy-dependencies</goal>
+                                    </goals>
+                                    <configuration>
+                                        <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                                        <overWriteReleases>false</overWriteReleases>
+                                        <overWriteSnapshots>false</overWriteSnapshots>
+                                        <overWriteIfNewer>true</overWriteIfNewer>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
 
     </profiles>
 
