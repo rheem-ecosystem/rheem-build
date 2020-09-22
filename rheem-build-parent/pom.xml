@@ -436,6 +436,7 @@
                     <groupId>org.antlr</groupId>
                     <artifactId>antlr4</artifactId>
                     <version>${antlr.version}</version>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
@@ -541,6 +542,14 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -724,6 +733,7 @@
                     <useFile>false</useFile>
                     <includes>
                         <include>**/*Tests.java</include>
+                        <include>**/*Test.java</include>
                     </includes>
                 </configuration>
             </plugin>
